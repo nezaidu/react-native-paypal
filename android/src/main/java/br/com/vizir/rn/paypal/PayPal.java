@@ -3,12 +3,15 @@ package br.com.vizir.rn.paypal;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.net.Uri;
+import android.util.Log;
 
 import com.facebook.react.bridge.Callback;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.bridge.ReadableMap;
+import com.facebook.react.bridge.Promise;
 
 import com.paypal.android.sdk.payments.PayPalAuthorization;
 import com.paypal.android.sdk.payments.PayPalConfiguration;
@@ -16,14 +19,14 @@ import com.paypal.android.sdk.payments.PayPalPayment;
 import com.paypal.android.sdk.payments.PayPalService;
 import com.paypal.android.sdk.payments.PaymentActivity;
 import com.paypal.android.sdk.payments.PaymentConfirmation;
+import com.paypal.android.sdk.payments.PayPalFuturePaymentActivity;
 
 import java.util.Map;
 import java.util.HashMap;
 import java.math.BigDecimal;
 
-public class PayPal extends ReactContextBaseJavaModule {
-  private final int paymentIntentRequestCode;
 
+public class PayPal extends ReactContextBaseJavaModule {
   private static final String ERROR_USER_CANCELLED = "USER_CANCELLED";
   private static final String ERROR_INVALID_CONFIG = "INVALID_CONFIG";
 
@@ -33,11 +36,13 @@ public class PayPal extends ReactContextBaseJavaModule {
   private Context activityContext;
   private Activity currentActivity;
 
-  public PayPal(ReactApplicationContext reactContext, Context activityContext, int requestCode) {
+  private static final int REQUEST_CODE_PAYMENT = 1;
+  private static final int REQUEST_CODE_FUTURE_PAYMENT = 2;
+
+  public PayPal(ReactApplicationContext reactContext, Context activityContext) {
     super(reactContext);
     this.activityContext = activityContext;
     this.currentActivity = (Activity)activityContext;
-    this.paymentIntentRequestCode = requestCode;
   }
 
   @Override
@@ -55,6 +60,54 @@ public class PayPal extends ReactContextBaseJavaModule {
     constants.put(ERROR_INVALID_CONFIG, ERROR_INVALID_CONFIG);
 
     return constants;
+  }
+
+  @ReactMethod
+  public void getMetadataId(
+    final Callback successCallback,
+    final Callback errorCallback
+  ) {
+    try {
+      String metadataId = PayPalConfiguration.getClientMetadataId(currentActivity);
+      successCallback.invoke(metadataId);
+    } catch (Exception e) {
+      errorCallback.invoke(e);
+    }
+  }
+
+  @ReactMethod
+  public void futurePayment(
+    final ReadableMap payPalParameters,
+    final Callback successCallback,
+    final Callback errorCallback
+  ) {
+    this.successCallback = successCallback;
+    this.errorCallback = errorCallback;
+
+    final String environment = payPalParameters.getString("environment");
+    final String clientId = payPalParameters.getString("clientId");
+    final String merchantName = payPalParameters.getString("merchantName");
+    final String policyUri = payPalParameters.getString("policyUri");
+    final String agreementUri = payPalParameters.getString("agreementUri");
+
+    PayPalConfiguration config = new PayPalConfiguration()
+      .environment(environment)
+      .clientId(clientId)
+      .merchantName(merchantName)
+      .merchantPrivacyPolicyUri(Uri.parse(policyUri))
+      .merchantUserAgreementUri(Uri.parse(agreementUri));
+
+    // start service
+    Intent serviceIntent = new Intent(currentActivity, PayPalService.class);
+    serviceIntent.putExtra(PayPalService.EXTRA_PAYPAL_CONFIGURATION, config);
+    currentActivity.startService(serviceIntent);
+
+    // // start activity
+    Intent activityIntent =
+      new Intent(activityContext, PayPalFuturePaymentActivity.class)
+        .putExtra(PayPalService.EXTRA_PAYPAL_CONFIGURATION, config);
+
+    currentActivity.startActivityForResult(activityIntent, REQUEST_CODE_FUTURE_PAYMENT);
   }
 
   @ReactMethod
@@ -86,7 +139,7 @@ public class PayPal extends ReactContextBaseJavaModule {
       .putExtra(PayPalService.EXTRA_PAYPAL_CONFIGURATION, config)
       .putExtra(PaymentActivity.EXTRA_PAYMENT, thingToBuy);
 
-    currentActivity.startActivityForResult(intent, paymentIntentRequestCode);
+    currentActivity.startActivityForResult(intent, REQUEST_CODE_PAYMENT);
   }
 
   private void startPayPalService(PayPalConfiguration config) {
@@ -95,9 +148,22 @@ public class PayPal extends ReactContextBaseJavaModule {
     currentActivity.startService(intent);
   }
 
-  public void handleActivityResult(final int requestCode, final int resultCode, final Intent data) {
-    if (requestCode != paymentIntentRequestCode) { return; }
+  private void handleFutureActivityResult(final int resultCode, final Intent data) {
+    if (resultCode == Activity.RESULT_OK) {
+      PayPalAuthorization auth = data
+        .getParcelableExtra(PayPalFuturePaymentActivity.EXTRA_RESULT_AUTHORIZATION);
+      if (auth != null) {
+        String authorization_code = auth.getAuthorizationCode();
+        successCallback.invoke(authorization_code);
+      }
+    } else if (resultCode == Activity.RESULT_CANCELED) {
+      errorCallback.invoke(ERROR_USER_CANCELLED);
+    } else if (resultCode == PaymentActivity.RESULT_EXTRAS_INVALID) {
+      errorCallback.invoke(ERROR_INVALID_CONFIG);
+    }
+  }
 
+  private void handlePaymentActivityResult(final int resultCode, final Intent data) {
     if (resultCode == Activity.RESULT_OK) {
       PaymentConfirmation confirm =
         data.getParcelableExtra(PaymentActivity.EXTRA_RESULT_CONFIRMATION);
@@ -111,6 +177,20 @@ public class PayPal extends ReactContextBaseJavaModule {
       errorCallback.invoke(ERROR_USER_CANCELLED);
     } else if (resultCode == PaymentActivity.RESULT_EXTRAS_INVALID) {
       errorCallback.invoke(ERROR_INVALID_CONFIG);
+    }
+  }
+
+  public void handleActivityResult(final int requestCode, final int resultCode, final Intent data) {
+    if (requestCode != REQUEST_CODE_FUTURE_PAYMENT && requestCode != REQUEST_CODE_PAYMENT) {
+      return;
+    }
+
+    if (requestCode == REQUEST_CODE_FUTURE_PAYMENT) {
+      handleFutureActivityResult(resultCode, data);
+    }
+
+    if (requestCode == REQUEST_CODE_PAYMENT) {
+      handlePaymentActivityResult(resultCode, data);
     }
 
     currentActivity.stopService(new Intent(currentActivity, PayPalService.class));

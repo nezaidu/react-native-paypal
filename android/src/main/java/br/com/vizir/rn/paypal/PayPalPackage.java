@@ -16,17 +16,15 @@ import java.util.List;
 public class PayPalPackage implements ReactPackage {
   private Context context;
   private PayPal paypalModule;
-  private int paymentIntentRequestCode;
 
-  public PayPalPackage(Context activityContext, int paymentIntentRequestCode) {
+  public PayPalPackage(Context activityContext) {
     context = activityContext;
-    this.paymentIntentRequestCode = paymentIntentRequestCode;
   }
 
   @Override
   public List<NativeModule> createNativeModules(ReactApplicationContext reactContext) {
     List<NativeModule> modules = new ArrayList<>();
-    paypalModule = new PayPal(reactContext, context, paymentIntentRequestCode);
+    paypalModule = new PayPal(reactContext, context);
 
     modules.add(paypalModule);
     return modules;
