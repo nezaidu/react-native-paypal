@@ -113,3 +113,19 @@ RCT_EXPORT_METHOD(presentPaymentViewControllerForPreparedPurchase:(RCTResponseSe
 }
 
 @end
+// RCT_EXPORT_METHOD(presentPaymentViewControllerForPreparedPurchase:(NSString *)clientId
+//                   forEnv:(int)environment
+//                   forMerchantName:(NSString *)merchantName
+//                   forMerchantPolicy:(NSString *)merchantPrivacyPolicyURL
+//                   forMerchantAgreement:(NSString *)merchantUserAgreementURL
+//                   forCallback:(RCTResponseSenderBlock)flowCompletedCallback)
+
+// {
+//   NSString *envString = [self stringFromEnvironmentEnum:environment];
+
+//   _payPalConfig = [[PayPalConfiguration alloc] init];
+
+//   _payPalConfig.acceptCreditCards = YES;
+//   _payPalConfig.merchantName = @"Awesome Shirts, Inc.";
+//   _payPalConfig.merchantPrivacyPolicyURL = [NSURL URLWithString:@"https://www.paypal.com/webapps/mpp/ua/privacy-full"];
+//   _payPalConfig.merchantUserAgreementURL = [NSURL URLWithString:@"https://www.paypal.com/webapps/mpp/ua/useragreement-full"];

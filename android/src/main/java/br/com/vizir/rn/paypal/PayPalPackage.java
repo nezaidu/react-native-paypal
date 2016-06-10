@@ -2,6 +2,7 @@ package br.com.vizir.rn.paypal;
 
 import android.content.Intent;
 import android.content.Context;
+import android.util.Log;
 
 import com.facebook.react.ReactPackage;
 import com.facebook.react.bridge.JavaScriptModule;

@@ -24,14 +24,25 @@ NSString * const kPayPalPaymentConfirmationKey        = @"confirmation";
 
 RCT_EXPORT_MODULE();
 
-RCT_EXPORT_METHOD(presentPaymentViewControllerForPreparedPurchase:(RCTResponseSenderBlock)flowCompletedCallback)
+RCT_EXPORT_METHOD(presentPaymentViewControllerForPreparedPurchase:(NSString *)clientId
+                  forEnv:(int)environment
+                  forMerchantName:(NSString *)merchantName
+                  forMerchantPolicy:(NSString *)merchantPrivacyPolicyURL
+                  forMerchantAgreement:(NSString *)merchantUserAgreementURL
+                  forCallback:(RCTResponseSenderBlock)flowCompletedCallback)
+
 {
+  NSString *envString = [self stringFromEnvironmentEnum:environment];
+
+  [PayPalMobile initializeWithClientIdsForEnvironments:@{envString : clientId}];
+  [PayPalMobile preconnectWithEnvironment:envString];
+
   _payPalConfig = [[PayPalConfiguration alloc] init];
 
   _payPalConfig.acceptCreditCards = YES;
-  _payPalConfig.merchantName = @"Awesome Shirts, Inc.";
-  _payPalConfig.merchantPrivacyPolicyURL = [NSURL URLWithString:@"https://www.paypal.com/webapps/mpp/ua/privacy-full"];
-  _payPalConfig.merchantUserAgreementURL = [NSURL URLWithString:@"https://www.paypal.com/webapps/mpp/ua/useragreement-full"];
+  _payPalConfig.merchantName = merchantName;
+  _payPalConfig.merchantPrivacyPolicyURL = [NSURL URLWithString:merchantPrivacyPolicyURL];
+  _payPalConfig.merchantUserAgreementURL = [NSURL URLWithString:merchantUserAgreementURL];
 
   self.flowCompletedCallback = flowCompletedCallback;
 
@@ -51,6 +62,7 @@ RCT_EXPORT_METHOD(presentPaymentViewControllerForPreparedPurchase:(RCTResponseSe
   }];
 }
 
+
 - (void)payPalFuturePaymentViewController:(PayPalFuturePaymentViewController *)futurePaymentViewController
                  didAuthorizeFuturePayment:(NSDictionary *)futurePaymentAuthorization
 {
@@ -65,6 +77,15 @@ RCT_EXPORT_METHOD(presentPaymentViewControllerForPreparedPurchase:(RCTResponseSe
   [futurePaymentViewController.presentingViewController dismissViewControllerAnimated:YES completion:^{
     self.flowCompletedCallback(@[[NSNull null]]);
   }];
+}
+
+- (NSString *)stringFromEnvironmentEnum:(PayPalEnvironment)env
+{
+  switch (env) {
+    case kPayPalEnvironmentProduction: return PayPalEnvironmentProduction;
+    case kPayPalEnvironmentSandbox: return PayPalEnvironmentSandbox;
+    case kPayPalEnvironmentSandboxNoNetwork: return PayPalEnvironmentNoNetwork;
+  }
 }
 
 @end

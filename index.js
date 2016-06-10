@@ -44,9 +44,28 @@ var functions = {
   },
 
   futurePayment(payPalParameters) {
-    return new Promise(function(resolve, reject) {
-      PayPal.futurePayment(payPalParameters, resolve, reject);
-    });
+    if (Platform.OS === 'android') {
+      return new Promise(function(resolve, reject) {
+        let successCallback = (code) => {
+          resolve({response: {code}});
+        };
+        PayPal.futurePayment(payPalParameters, successCallback, reject);
+      });
+    } else {
+      return new Promise(function(resolve, reject) {
+        let callback = (result) => {
+          result ? resolve(result) : reject(result);
+        };
+        MFLReactNativePayPal.presentPaymentViewControllerForPreparedPurchase(
+          payPalParameters.clientId,
+          payPalParameters.environment,
+          payPalParameters.merchantName,
+          payPalParameters.policyUri,
+          payPalParameters.agreementUri,
+          callback
+        );
+      });
+    }
   },
 
   getMetadataId() {
