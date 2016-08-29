@@ -20,29 +20,6 @@ if (Platform.OS === 'android') {
 }
 
 var functions = {
-  paymentRequest(payPalParameters) {
-    return new Promise(function(resolve, reject) {
-      if (Platform.OS === 'android') {
-        PayPal.paymentRequest(payPalParameters, resolve, reject);
-      } else {
-        MFLReactNativePayPal.initializePaypalEnvironment(payPalParameters.environment, payPalParameters.clientId);
-        MFLReactNativePayPal.preparePaymentOfAmount(payPalParameters.price, payPalParameters.currency, payPalParameters.description);
-        MFLReactNativePayPal.prepareConfigurationForMerchant("Shape A Future", true, "spenden@aktion-europa-hilft.de");
-        MFLReactNativePayPal.presentPaymentViewControllerForPreparedPurchase((error, payload) => {
-          if (error) {
-             reject(constants.INVALID_CONFIG, error)
-           } else {
-            if (payload.status === 1) {
-              resolve(payload);
-            } else {
-              reject(constants.USER_CANCELLED, payload);
-            }
-           }
-        });
-      }
-    });
-  },
-
   futurePayment(payPalParameters) {
     if (Platform.OS === 'android') {
       return new Promise(function(resolve, reject) {
@@ -56,7 +33,27 @@ var functions = {
         let callback = (result) => {
           result ? resolve(result) : reject(result);
         };
-        MFLReactNativePayPal.presentPaymentViewControllerForPreparedPurchase(
+        MFLReactNativePayPal.futurePayment(
+          payPalParameters.clientId,
+          payPalParameters.environment,
+          payPalParameters.merchantName,
+          payPalParameters.policyUri,
+          payPalParameters.agreementUri,
+          callback
+        );
+      });
+    }
+  },
+
+  shareProfile(payPalParameters) {
+    if (Platform.OS === 'android') {
+      alert('not yet!');
+    } else {
+      return new Promise(function(resolve, reject) {
+        let callback = (result) => {
+          result ? resolve(result) : reject(result);
+        };
+        MFLReactNativePayPal.shareProfile(
           payPalParameters.clientId,
           payPalParameters.environment,
           payPalParameters.merchantName,

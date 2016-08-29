@@ -10,10 +10,11 @@
 #import "RCTBridge.h"
 #import "PayPalMobile.h"
 
+
 NSString * const kPayPalPaymentStatusKey              = @"status";
 NSString * const kPayPalPaymentConfirmationKey        = @"confirmation";
 
-@interface MFLReactNativePayPal () <PayPalPaymentDelegate, RCTBridgeModule>
+@interface MFLReactNativePayPal () <RCTBridgeModule>
 
 @property (copy) RCTResponseSenderBlock flowCompletedCallback;
 @property(nonatomic, strong, readwrite) PayPalConfiguration *payPalConfig;
@@ -24,7 +25,7 @@ NSString * const kPayPalPaymentConfirmationKey        = @"confirmation";
 
 RCT_EXPORT_MODULE();
 
-RCT_EXPORT_METHOD(presentPaymentViewControllerForPreparedPurchase:(NSString *)clientId
+RCT_EXPORT_METHOD(futurePayment:(NSString *)clientId
                   forEnv:(int)environment
                   forMerchantName:(NSString *)merchantName
                   forMerchantPolicy:(NSString *)merchantPrivacyPolicyURL
@@ -33,6 +34,8 @@ RCT_EXPORT_METHOD(presentPaymentViewControllerForPreparedPurchase:(NSString *)cl
 
 {
   NSString *envString = [self stringFromEnvironmentEnum:environment];
+
+  NSLog(clientId);
 
   [PayPalMobile initializeWithClientIdsForEnvironments:@{envString : clientId}];
   [PayPalMobile preconnectWithEnvironment:envString];
@@ -62,6 +65,61 @@ RCT_EXPORT_METHOD(presentPaymentViewControllerForPreparedPurchase:(NSString *)cl
   }];
 }
 
+RCT_EXPORT_METHOD(shareProfile:(NSString *)clientId
+                  forEnv:(int)environment
+                  forMerchantName:(NSString *)merchantName
+                  forMerchantPolicy:(NSString *)merchantPrivacyPolicyURL
+                  forMerchantAgreement:(NSString *)merchantUserAgreementURL
+                  forCallback:(RCTResponseSenderBlock)flowCompletedCallback)
+
+{
+  NSString *envString = [self stringFromEnvironmentEnum:environment];
+
+  [PayPalMobile initializeWithClientIdsForEnvironments:@{envString : clientId}];
+  [PayPalMobile preconnectWithEnvironment:envString];
+
+  _payPalConfig = [[PayPalConfiguration alloc] init];
+
+  _payPalConfig.merchantName = merchantName;
+  _payPalConfig.merchantPrivacyPolicyURL = [NSURL URLWithString:merchantPrivacyPolicyURL];
+  _payPalConfig.merchantUserAgreementURL = [NSURL URLWithString:merchantUserAgreementURL];
+
+  self.flowCompletedCallback = flowCompletedCallback;
+
+  NSSet *scopeValues = [NSSet setWithArray:@[kPayPalOAuth2ScopeOpenId, kPayPalOAuth2ScopeEmail, kPayPalOAuth2ScopeAddress, kPayPalOAuth2ScopePhone]];
+  PayPalProfileSharingViewController *vc = [[PayPalProfileSharingViewController alloc] initWithScopeValues:scopeValues configuration:_payPalConfig delegate:self];
+
+  UIViewController *visibleVC = [[[UIApplication sharedApplication] keyWindow] rootViewController];
+  do {
+    if ([visibleVC isKindOfClass:[UINavigationController class]]) {
+      visibleVC = [(UINavigationController *)visibleVC visibleViewController];
+    } else if (visibleVC.presentedViewController) {
+      visibleVC = visibleVC.presentedViewController;
+    }
+  } while (visibleVC.presentedViewController);
+
+  [visibleVC presentViewController:vc animated:YES completion:^{
+    // self.flowCompletedCallback(@[[NSNull null]]);
+  }];
+}
+
+- (void)payPalProfileSharingViewController:(PayPalProfileSharingViewController *)profileSharingViewController
+             userDidLogInWithAuthorization:(NSDictionary *)profileSharingAuthorization {
+  [profileSharingViewController.presentingViewController dismissViewControllerAnimated:YES completion:^{
+    NSLog(@"SUCCESS");
+
+    // if (self.flowCompletedCallback) {
+    //   self.flowCompletedCallback(@[profileSharingAuthorization]);
+    // }
+  }];
+}
+
+- (void)userDidCancelPayPalProfileSharingViewController:(PayPalProfileSharingViewController *)profileSharingViewController {
+  NSLog(@"PayPal Profile Sharing Authorization Canceled");
+  [profileSharingViewController.presentingViewController dismissViewControllerAnimated:YES completion:^{
+    self.flowCompletedCallback(@[[NSNull null]]);
+  }];
+}
 
 - (void)payPalFuturePaymentViewController:(PayPalFuturePaymentViewController *)futurePaymentViewController
                  didAuthorizeFuturePayment:(NSDictionary *)futurePaymentAuthorization

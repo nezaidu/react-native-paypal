@@ -36,8 +36,8 @@ public class PayPal extends ReactContextBaseJavaModule {
   private Context activityContext;
   private Activity currentActivity;
 
-  private static final int REQUEST_CODE_PAYMENT = 1;
-  private static final int REQUEST_CODE_FUTURE_PAYMENT = 2;
+  private static final int REQUEST_CODE_PAYMENT = 179 + 1;
+  private static final int REQUEST_CODE_FUTURE_PAYMENT = 179 + 2;
 
   public PayPal(ReactApplicationContext reactContext, Context activityContext) {
     super(reactContext);
