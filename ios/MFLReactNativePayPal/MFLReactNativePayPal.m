@@ -78,6 +78,8 @@ RCT_EXPORT_METHOD(shareProfile:(NSString *)clientId
   [PayPalMobile initializeWithClientIdsForEnvironments:@{envString : clientId}];
   [PayPalMobile preconnectWithEnvironment:envString];
 
+  NSLog(@"SHARE!");
+
   _payPalConfig = [[PayPalConfiguration alloc] init];
 
   _payPalConfig.merchantName = merchantName;
@@ -86,7 +88,7 @@ RCT_EXPORT_METHOD(shareProfile:(NSString *)clientId
 
   self.flowCompletedCallback = flowCompletedCallback;
 
-  NSSet *scopeValues = [NSSet setWithArray:@[kPayPalOAuth2ScopeOpenId, kPayPalOAuth2ScopeEmail, kPayPalOAuth2ScopeAddress, kPayPalOAuth2ScopePhone]];
+  NSSet *scopeValues = [NSSet setWithArray:@[kPayPalOAuth2ScopeEmail, kPayPalOAuth2ScopeFuturePayments, kPayPalOAuth2ScopePhone]];
   PayPalProfileSharingViewController *vc = [[PayPalProfileSharingViewController alloc] initWithScopeValues:scopeValues configuration:_payPalConfig delegate:self];
 
   UIViewController *visibleVC = [[[UIApplication sharedApplication] keyWindow] rootViewController];
@@ -108,9 +110,9 @@ RCT_EXPORT_METHOD(shareProfile:(NSString *)clientId
   [profileSharingViewController.presentingViewController dismissViewControllerAnimated:YES completion:^{
     NSLog(@"SUCCESS");
 
-    // if (self.flowCompletedCallback) {
-    //   self.flowCompletedCallback(@[profileSharingAuthorization]);
-    // }
+    if (self.flowCompletedCallback) {
+      self.flowCompletedCallback(@[profileSharingAuthorization]);
+    }
   }];
 }
 

@@ -23,8 +23,8 @@ var functions = {
   futurePayment(payPalParameters) {
     if (Platform.OS === 'android') {
       return new Promise(function(resolve, reject) {
-        let successCallback = (code) => {
-          resolve({response: {code}});
+        let successCallback = (result) => {
+          resolve(result);
         };
         PayPal.futurePayment(payPalParameters, successCallback, reject);
       });
@@ -47,7 +47,12 @@ var functions = {
 
   shareProfile(payPalParameters) {
     if (Platform.OS === 'android') {
-      alert('not yet!');
+      return new Promise(function(resolve, reject) {
+        let successCallback = (code) => {
+          resolve({response: {code}});
+        };
+        PayPal.shareProfile(payPalParameters, successCallback, reject);
+      });
     } else {
       return new Promise(function(resolve, reject) {
         let callback = (result) => {
