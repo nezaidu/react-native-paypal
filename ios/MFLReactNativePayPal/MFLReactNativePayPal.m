@@ -123,6 +123,11 @@ RCT_EXPORT_METHOD(shareProfile:(NSString *)clientId
   }];
 }
 
+- (dispatch_queue_t)methodQueue
+{
+  return dispatch_get_main_queue();
+}
+
 - (void)payPalFuturePaymentViewController:(PayPalFuturePaymentViewController *)futurePaymentViewController
                  didAuthorizeFuturePayment:(NSDictionary *)futurePaymentAuthorization
 {
