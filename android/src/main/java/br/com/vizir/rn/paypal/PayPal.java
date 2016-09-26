@@ -23,6 +23,8 @@ import com.paypal.android.sdk.payments.PayPalFuturePaymentActivity;
 import com.paypal.android.sdk.payments.PayPalProfileSharingActivity;
 import com.paypal.android.sdk.payments.PayPalOAuthScopes;
 
+import com.facebook.react.bridge.ActivityEventListener;
+
 import java.util.Map;
 import java.util.HashMap;
 import java.math.BigDecimal;
@@ -30,7 +32,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
-public class PayPal extends ReactContextBaseJavaModule {
+public class CardIo extends ReactContextBaseJavaModule implements ActivityEventListener {
   private static final String ERROR_USER_CANCELLED = "USER_CANCELLED";
   private static final String ERROR_INVALID_CONFIG = "INVALID_CONFIG";
 
@@ -44,10 +46,14 @@ public class PayPal extends ReactContextBaseJavaModule {
   private static final int REQUEST_CODE_FUTURE_PAYMENT = 179 + 2;
   private static final int REQUEST_CODE_PROFILE_SHARING = 179 + 3;
 
+  @Override
+  public void onNewIntent(Intent intent) { }
+
   public PayPal(ReactApplicationContext reactContext, Context activityContext) {
     super(reactContext);
     this.activityContext = activityContext;
     this.currentActivity = (Activity)activityContext;
+    reactContext.addActivityEventListener(this);
   }
 
   @Override
@@ -246,7 +252,8 @@ public class PayPal extends ReactContextBaseJavaModule {
     }
   }
 
-  public void handleActivityResult(final int requestCode, final int resultCode, final Intent data) {
+  @Override
+  public void onActivityResult(Activity activity, int requestCode, int resultCode, Intent data) {
     if (requestCode == REQUEST_CODE_FUTURE_PAYMENT) {
       handleFutureActivityResult(resultCode, data);
     } else if (requestCode == REQUEST_CODE_PAYMENT) {

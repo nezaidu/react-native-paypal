@@ -40,8 +40,4 @@ public class PayPalPackage implements ReactPackage {
   public List<ViewManager> createViewManagers(ReactApplicationContext reactContext) {
     return Collections.emptyList();
   }
-
-  public void handleActivityResult(final int requestCode, final int resultCode, final Intent data) {
-    paypalModule.handleActivityResult(requestCode, resultCode, data);
-  }
 }
