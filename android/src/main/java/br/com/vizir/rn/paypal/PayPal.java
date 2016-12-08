@@ -32,7 +32,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
-public class CardIo extends ReactContextBaseJavaModule implements ActivityEventListener {
+public class PayPal extends ReactContextBaseJavaModule implements ActivityEventListener {
   private static final String ERROR_USER_CANCELLED = "USER_CANCELLED";
   private static final String ERROR_INVALID_CONFIG = "INVALID_CONFIG";
 
