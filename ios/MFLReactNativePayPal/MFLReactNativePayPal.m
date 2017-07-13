@@ -7,7 +7,7 @@
 //
 
 #import "MFLReactNativePayPal.h"
-#import "RCTBridge.h"
+#import <React/RCTBridge.h>
 #import "PayPalMobile.h"
 
 
