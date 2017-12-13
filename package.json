@@ -24,5 +24,8 @@
   "bugs": {
     "url": "https://github.com/vizir/react-native-paypal/issues"
   },
-  "homepage": "https://github.com/vizir/react-native-paypal"
+  "homepage": "https://github.com/vizir/react-native-paypal",
+  "dependencies": {
+    "react-native-star-rating": "^1.0.8"
+  }
 }

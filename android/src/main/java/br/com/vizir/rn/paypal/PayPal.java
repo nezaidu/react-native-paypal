@@ -202,7 +202,7 @@ public class PayPal extends ReactContextBaseJavaModule implements ActivityEventL
        * attributes you select for this app in the PayPal developer portal and the scopes required here.
        */
       Set<String> scopes = new HashSet<String>(
-              Arrays.asList(PayPalOAuthScopes.PAYPAL_SCOPE_EMAIL, PayPalOAuthScopes.PAYPAL_SCOPE_ADDRESS) );
+              Arrays.asList(PayPalOAuthScopes.PAYPAL_SCOPE_PHONE, PayPalOAuthScopes.PAYPAL_SCOPE_EMAIL, PayPalOAuthScopes.PAYPAL_SCOPE_PROFILE) );
       return new PayPalOAuthScopes(scopes);
   }
 

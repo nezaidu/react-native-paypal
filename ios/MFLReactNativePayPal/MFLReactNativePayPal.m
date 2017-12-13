@@ -88,7 +88,7 @@ RCT_EXPORT_METHOD(shareProfile:(NSString *)clientId
 
   self.flowCompletedCallback = flowCompletedCallback;
 
-  NSSet *scopeValues = [NSSet setWithArray:@[kPayPalOAuth2ScopeEmail, kPayPalOAuth2ScopeFuturePayments, kPayPalOAuth2ScopePhone]];
+  NSSet *scopeValues = [NSSet setWithArray:@[kPayPalOAuth2ScopeProfile, kPayPalOAuth2ScopeEmail, kPayPalOAuth2ScopePhone]];
   PayPalProfileSharingViewController *vc = [[PayPalProfileSharingViewController alloc] initWithScopeValues:scopeValues configuration:_payPalConfig delegate:self];
 
   UIViewController *visibleVC = [[[UIApplication sharedApplication] keyWindow] rootViewController];
