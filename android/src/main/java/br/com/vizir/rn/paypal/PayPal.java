@@ -39,7 +39,7 @@ public class PayPal extends ReactContextBaseJavaModule implements ActivityEventL
   private Callback successCallback;
   private Callback errorCallback;
 
-  private Context activityContext;
+  // private Context activityContext;
   private Activity currentActivity;
 
   private static final int REQUEST_CODE_PAYMENT = 179 + 1;
@@ -49,10 +49,10 @@ public class PayPal extends ReactContextBaseJavaModule implements ActivityEventL
   @Override
   public void onNewIntent(Intent intent) { }
 
-  public PayPal(ReactApplicationContext reactContext, Context activityContext) {
+  public PayPal(ReactApplicationContext reactContext) {
     super(reactContext);
-    this.activityContext = activityContext;
-    this.currentActivity = (Activity)activityContext;
+    // this.activityContext = activityContext;
+    // this.currentActivity = (Activity)activityContext;
       Log.d("ReactNativeJS", "START ");
     reactContext.addActivityEventListener(this);
   }
@@ -80,7 +80,7 @@ public class PayPal extends ReactContextBaseJavaModule implements ActivityEventL
     final Callback errorCallback
   ) {
     try {
-      String metadataId = PayPalConfiguration.getClientMetadataId(currentActivity);
+      String metadataId = PayPalConfiguration.getClientMetadataId(getCurrentActivity());
       successCallback.invoke(metadataId);
     } catch (Exception e) {
       errorCallback.invoke(e);
@@ -116,7 +116,7 @@ public class PayPal extends ReactContextBaseJavaModule implements ActivityEventL
 
     // // start activity
     Intent activityIntent =
-      new Intent(activityContext, PayPalProfileSharingActivity.class)
+      new Intent(getCurrentActivity().getApplicationContext(), PayPalProfileSharingActivity.class)
         .putExtra(PayPalService.EXTRA_PAYPAL_CONFIGURATION, config)
         .putExtra(PayPalProfileSharingActivity.EXTRA_REQUESTED_SCOPES, getOauthScopes());
 
@@ -152,7 +152,7 @@ public class PayPal extends ReactContextBaseJavaModule implements ActivityEventL
 
     // // start activity
     Intent activityIntent =
-      new Intent(activityContext, PayPalFuturePaymentActivity.class)
+      new Intent(getCurrentActivity().getApplicationContext(), PayPalFuturePaymentActivity.class)
         .putExtra(PayPalService.EXTRA_PAYPAL_CONFIGURATION, config);
 
     getCurrentActivity().startActivityForResult(activityIntent, REQUEST_CODE_FUTURE_PAYMENT);
@@ -183,15 +183,15 @@ public class PayPal extends ReactContextBaseJavaModule implements ActivityEventL
                         PayPalPayment.PAYMENT_INTENT_SALE);
 
     Intent intent =
-      new Intent(activityContext, PaymentActivity.class)
+      new Intent(getCurrentActivity().getApplicationContext(), PaymentActivity.class)
       .putExtra(PayPalService.EXTRA_PAYPAL_CONFIGURATION, config)
       .putExtra(PaymentActivity.EXTRA_PAYMENT, thingToBuy);
 
-    currentActivity.startActivityForResult(intent, REQUEST_CODE_PAYMENT);
+    getCurrentActivity().startActivityForResult(intent, REQUEST_CODE_PAYMENT);
   }
 
   private void startPayPalService(PayPalConfiguration config) {
-    Intent intent = new Intent(currentActivity, PayPalService.class);
+    Intent intent = new Intent(getCurrentActivity(), PayPalService.class);
     intent.putExtra(PayPalService.EXTRA_PAYPAL_CONFIGURATION, config);
     currentActivity.startService(intent);
   }
@@ -268,6 +268,6 @@ public class PayPal extends ReactContextBaseJavaModule implements ActivityEventL
       return;
     }
 
-    currentActivity.stopService(new Intent(currentActivity, PayPalService.class));
+    getCurrentActivity().stopService(new Intent(getCurrentActivity(), PayPalService.class));
   }
 }

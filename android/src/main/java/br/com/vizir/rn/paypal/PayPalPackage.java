@@ -15,17 +15,15 @@ import java.util.Collections;
 import java.util.List;
 
 public class PayPalPackage implements ReactPackage {
-  private Context context;
   private PayPal paypalModule;
 
-  public PayPalPackage(Context activityContext) {
-    context = activityContext;
+  public PayPalPackage() {
   }
 
   @Override
   public List<NativeModule> createNativeModules(ReactApplicationContext reactContext) {
     List<NativeModule> modules = new ArrayList<>();
-    paypalModule = new PayPal(reactContext, context);
+    paypalModule = new PayPal(reactContext);
 
     modules.add(paypalModule);
     return modules;
